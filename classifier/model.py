@@ -27,9 +27,9 @@ class Network ():
         self.batch_norm_momentum = 0.99
         self.batch_norm_epsilon = 1e-5
         self.sample_length = input_length
-        self.filter_size = 256
+        self.filter_size = 64
         self.kernel_size = 4
-        self.num_layers = 5
+        self.num_layers = 10
         self.initializer = tf.keras.initializers.GlorotNormal(seed = int(time.time()))
         print ("Initializing a simple feed-forward network...")
 
@@ -52,7 +52,7 @@ class Network ():
             #    x = x + shortcut
             x = layers.LeakyReLU() (x)
             #x = activations.tanh (x)
-        y = layers.Dense(14, 
+        y = layers.Dense(10, 
                          kernel_regularizer = self.regularizer,
                          activation = 'softmax')(x)
         return Model(x_in, y, name = "oxynet")
