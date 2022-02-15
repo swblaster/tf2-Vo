@@ -49,4 +49,7 @@ if __name__ == '__main__':
                       num_classes = num_classes,
                       decay_epochs = decay_epochs,
                       do_checkpoint = do_checkpoint)
-    trainer.train()
+    if cfg.record == 0:
+        trainer.train()
+    else:
+        trainer.record()

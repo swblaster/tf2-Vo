@@ -59,7 +59,7 @@ class Feeder:
             print ("label: %f shape: %d\n" %(label[0], len(sample)))
         samples = np.array(data)
         labels = np.array(sample_labels)
-        self.samples = np.reshape(samples, (14000, 200))
+        self.samples = np.reshape(samples, (14000, self.input_length))
         labels = np.reshape(labels, (14000))
         self.labels = np.zeros((14000, 14))
         for i in range (14000):
@@ -112,47 +112,6 @@ class Feeder:
         self.train_labels = train_label
         self.valid_samples = valid
         self.valid_labels = valid_label
-        '''
-        per_sample_max = np.amax(self.sample_files, axis=1)
-        per_sample_min = np.amin(self.sample_files, axis=1)
-
-        # Normalize the data.
-        for i in range (len(per_sample_max)):
-            self.sample_files[i] = self.sample_files[i] - per_sample_min[i]
-            per_sample_max[i] = per_sample_max[i] - per_sample_min[i]
-            self.sample_files[i] = self.sample_files[i] / per_sample_max[i]
-            self.sample_files[i] = self.sample_files[i].astype(np.float32)
-
-        # Generate the index.
-        self.num_data_per_file = self.sample_files.shape[1] - self.input_length
-
-        self.num_train_samples = 10 * self.num_data_per_file
-        self.num_train_batches = self.num_train_samples // (self.size * self.train_batch_size)
-        self.num_local_train_samples = self.num_train_batches * self.train_batch_size
-        
-        self.num_valid_samples = 10 * self.num_data_per_file
-        self.num_valid_batches = self.num_valid_samples // (self.size * self.valid_batch_size)
-        self.num_local_valid_samples = self.num_valid_batches * self.valid_batch_size
-
-        self.local_train_samples_offset = self.rank * self.num_local_train_samples
-        self.index = np.zeros((self.num_train_samples))
-        for i in range (len(files)):
-            index = self.sample_labels[i]
-            if index == 1700:
-                index = 0
-            else:
-                index = 1
-            offset = i * self.num_data_per_file
-            for j in range (self.num_data_per_file):
-                self.index[offset + j] = index
-
-        self.labels = np.zeros((len(self.sample_labels), num_classes))
-        for i in range (len(self.sample_labels)):
-            if self.sample_labels[i] == 1700:
-                self.labels[i][0] = 1.0
-            else:
-                self.labels[i][1] = 1.0
-        '''
         print ("Local batch size: " + str(self.train_batch_size))
         print ("Number of training samples: " + str(self.num_train_samples))
         print ("Number of training batches: " + str(self.num_train_batches))
@@ -169,8 +128,6 @@ class Feeder:
         offset = self.local_train_samples_offset + sample_id
         index = self.shuffled_sample_index[offset]
         data = self.train_samples[index]
-        #data = np.subtract(data, self.per_pixel_mean)
-        #data = np.divide(data, self.per_pixel_std)
         data = np.reshape(data, [self.input_length, 1])
         label = self.train_labels[index]
         return data, label
@@ -189,8 +146,6 @@ class Feeder:
     def read_valid_sample (self, sample_id):
         index = sample_id
         data = self.valid_samples[index]
-        #data = np.subtract(data, self.per_pixel_mean)
-        #data = np.divide(data, self.per_pixel_std)
         data = np.reshape(data, [self.input_length, 1])
         label = self.valid_labels[index]
         return data, label

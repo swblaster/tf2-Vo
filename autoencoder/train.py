@@ -125,3 +125,31 @@ class Trainer:
         cross_entropy = self.train_loss(label, prediction)
         cross_entropy = tf.reduce_mean(cross_entropy)
         return cross_entropy
+
+    def record (self):
+        train_dataset = self.dataset.train_dataset()
+
+        # A checkpoint has epoch that is the first epoch after resume.
+        start_epoch = self.checkpoint.epoch.numpy()
+        if start_epoch == 0:
+            comm.broadcast_model(self.checkpoint.model)
+            print ("Starting from the scratch!\n")
+        else:
+            print ("Resuming from epoch " + str(start_epoch))
+
+        step = 0
+        sigma = 50
+        for i in tqdm(range(self.dataset.num_train_batches), ascii=True):
+            images, labels = train_dataset.next()
+            loss, predicts, hidden = self.train_step(images, labels)
+            name = "hidden_" + str(sigma) + ".txt"
+            f = open(name, "a")
+            hidden_data = hidden.numpy().flatten()
+            for j in range (len(hidden_data)):
+                f.write("%18.16f\n" %(hidden_data[j]))
+            f.close()
+            step += 1
+            if step == 20:
+                step = 0
+                sigma += 50
+        self.comm.Barrier()

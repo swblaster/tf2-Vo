@@ -30,7 +30,6 @@ if __name__ == '__main__':
     num_epochs = cfg.oxygen_config["epochs"]
     decay_epochs = list(cfg.oxygen_config["decay_epochs"])
     input_length = cfg.oxygen_config["input_length"]
-    latent_length = cfg.oxygen_config["latent_length"]
     input_path = cfg.oxygen_config["input_path"]
     weight_decay = cfg.oxygen_config["weight_decay"]
     do_evaluate = cfg.evaluate
@@ -38,7 +37,7 @@ if __name__ == '__main__':
     do_checkpoint = cfg.checkpoint
     do_cluster = cfg.cluster
 
-    network = Network(input_length, latent_length, num_classes)
+    network = Network(input_length)
     dataset = Feeder(input_path, batch_size, input_length, num_classes)
     trainer = Trainer(model = network,
                       dataset = dataset,

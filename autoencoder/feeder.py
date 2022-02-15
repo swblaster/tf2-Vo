@@ -108,47 +108,9 @@ class Feeder:
         self.train_labels = train_label
         self.valid_samples = valid
         self.valid_labels = valid_label
-        '''
-        per_sample_max = np.amax(self.sample_files, axis=1)
-        per_sample_min = np.amin(self.sample_files, axis=1)
 
-        # Normalize the data.
-        for i in range (len(per_sample_max)):
-            self.sample_files[i] = self.sample_files[i] - per_sample_min[i]
-            per_sample_max[i] = per_sample_max[i] - per_sample_min[i]
-            self.sample_files[i] = self.sample_files[i] / per_sample_max[i]
-            self.sample_files[i] = self.sample_files[i].astype(np.float32)
+        self.shuffled_sample_index = np.arange(self.num_train_samples)
 
-        # Generate the index.
-        self.num_data_per_file = self.sample_files.shape[1] - self.input_length
-
-        self.num_train_samples = 10 * self.num_data_per_file
-        self.num_train_batches = self.num_train_samples // (self.size * self.train_batch_size)
-        self.num_local_train_samples = self.num_train_batches * self.train_batch_size
-        
-        self.num_valid_samples = 10 * self.num_data_per_file
-        self.num_valid_batches = self.num_valid_samples // (self.size * self.valid_batch_size)
-        self.num_local_valid_samples = self.num_valid_batches * self.valid_batch_size
-
-        self.local_train_samples_offset = self.rank * self.num_local_train_samples
-        self.index = np.zeros((self.num_train_samples))
-        for i in range (len(files)):
-            index = self.sample_labels[i]
-            if index == 1700:
-                index = 0
-            else:
-                index = 1
-            offset = i * self.num_data_per_file
-            for j in range (self.num_data_per_file):
-                self.index[offset + j] = index
-
-        self.labels = np.zeros((len(self.sample_labels), num_classes))
-        for i in range (len(self.sample_labels)):
-            if self.sample_labels[i] == 1700:
-                self.labels[i][0] = 1.0
-            else:
-                self.labels[i][1] = 1.0
-        '''
         print ("Local batch size: " + str(self.train_batch_size))
         print ("Number of training samples: " + str(self.num_train_samples))
         print ("Number of training batches: " + str(self.num_train_batches))
