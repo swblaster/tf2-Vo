@@ -59,7 +59,8 @@ class Feeder:
             print ("label: %f shape: %d\n" %(label[0], len(sample)))
         samples = np.array(data)
         labels = np.array(sample_labels)
-        self.samples = np.reshape(samples, (10000, self.input_length))
+        self.samples = np.reshape(samples, (10000, 200))
+        self.samples = self.samples[:,:self.input_length]
         labels = np.reshape(labels, (10000))
         self.labels = np.zeros((10000, 10))
         for i in range (10000):
@@ -81,18 +82,18 @@ class Feeder:
             self.samples[i] = (self.samples[i] - min_element) / (max_element - min_element)
         '''
         # Then, standardize each point across all the samples.
-        #'''
+        '''
         per_pixel_mean = np.array(self.samples).astype(np.float32).mean(axis=0)
         per_pixel_std = np.array(self.samples).astype(np.float32).std(axis=0)
         self.samples = np.subtract(self.samples, per_pixel_mean)
         self.samples = np.divide(self.samples, per_pixel_std)
-        #'''
-
         '''
+
+        #'''
         per_pixel_max = np.amax(self.samples, axis=0)
         per_pixel_min = np.amin(self.samples, axis=0)
         self.samples = (self.samples - per_pixel_min) / (per_pixel_max - per_pixel_min)
-        '''
+        #'''
 
         train = []
         train_label = []
