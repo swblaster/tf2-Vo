@@ -153,8 +153,10 @@ class Trainer:
             results = tf.argmax(predicts, 1).numpy()
             label = tf.argmax(labels[0]).numpy()
             if label == 0:
-                name = "time_10s.txt"
+                name = "time_0s.txt"
             elif label == 1:
+                name = "time_10s.txt"
+            elif label == 2:
                 name = "time_30s.txt"
             else:
                 name = "time_60s.txt"

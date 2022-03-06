@@ -54,29 +54,31 @@ class Feeder:
             sigma = tokens[1].split('.')[0]
             label = np.zeros((10))
             for j in range (10):
-                if int(sigma) == 10:
+                if int(sigma) == 0:
                     label[j] = 0
-                elif int(sigma) == 30:
+                elif int(sigma) == 10:
                     label[j] = 1
-                else:
+                elif int(sigma) == 30:
                     label[j] = 2
+                else:
+                    label[j] = 3
             sample_labels.append(label)
             print ("label: %f shape: %d\n" %(label[0], len(sample)))
         samples = np.array(data)
         labels = np.array(sample_labels)
-        self.samples = np.reshape(samples, (30, 80))
+        self.samples = np.reshape(samples, (40, 80))
         self.samples = self.samples[:,:self.input_length]
-        labels = np.reshape(labels, (30))
-        self.labels = np.zeros((30, 10))
-        for i in range (30):
+        labels = np.reshape(labels, (40))
+        self.labels = np.zeros((40, 10))
+        for i in range (40):
             index = int(labels[i])
             self.labels[i][index] = 1
 
-        self.num_train_samples = 20
+        self.num_train_samples = 40
         self.num_train_batches = self.num_train_samples // (self.size * self.train_batch_size)
         self.num_local_train_samples = self.num_train_batches * self.train_batch_size
         self.local_train_samples_offset = self.rank * self.num_local_train_samples
-        self.num_valid_samples = 30
+        self.num_valid_samples = 40
         self.num_valid_batches = self.num_valid_samples // self.valid_batch_size
 
         min_value = np.amin(self.samples, axis=0)[-1]
@@ -106,7 +108,7 @@ class Feeder:
         valid = []
         valid_label = []
         offset = 0
-        for i in range (3):
+        for i in range (4):
             for j in range (10):
                 valid.append(self.samples[offset])
                 valid_label.append(self.labels[offset])
