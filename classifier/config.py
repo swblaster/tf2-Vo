@@ -2,7 +2,7 @@
 All the settings are under an assumption of using 8 processes.
 '''
 oxygen_config = {
-    "batch_size": 50,
+    "batch_size": 80,
     "min_lr": 0.1,
     "max_lr": 0.1,
     "num_classes": 10,

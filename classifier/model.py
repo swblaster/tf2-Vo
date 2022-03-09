@@ -93,7 +93,7 @@ class Network ():
         x = layers.BatchNormalization()(x)
         x = layers.LeakyReLU()(x)
 
-        y = layers.Dense(10, 
+        y = layers.Dense(5, 
                          kernel_regularizer = self.regularizer,
                          #bias_regularizer = self.regularizer,
                          activation = 'softmax')(x)

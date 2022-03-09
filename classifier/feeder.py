@@ -54,24 +54,24 @@ class Feeder:
             sigma = tokens[1].split('.')[0]
             label = np.zeros((1000))
             for j in range (1000):
-                label[j] = float((int(sigma) - 50) // 50.0)
+                label[j] = float((int(sigma) - 300) // 50.0)
             sample_labels.append(label)
             print ("label: %f shape: %d\n" %(label[0], len(sample)))
         samples = np.array(data)
         labels = np.array(sample_labels)
-        self.samples = np.reshape(samples, (10000, 200))
+        self.samples = np.reshape(samples, (5000, 200))
         self.samples = self.samples[:,:self.input_length]
-        labels = np.reshape(labels, (10000))
-        self.labels = np.zeros((10000, 10))
-        for i in range (10000):
+        labels = np.reshape(labels, (5000))
+        self.labels = np.zeros((5000, 5))
+        for i in range (5000):
             index = int(labels[i])
             self.labels[i][index] = 1
 
-        self.num_train_samples = 9000
+        self.num_train_samples = 4500
         self.num_train_batches = self.num_train_samples // (self.size * self.train_batch_size)
         self.num_local_train_samples = self.num_train_batches * self.train_batch_size
         self.local_train_samples_offset = self.rank * self.num_local_train_samples
-        self.num_valid_samples = 1000
+        self.num_valid_samples = 500
         self.num_valid_batches = self.num_valid_samples // self.valid_batch_size
 
         '''
@@ -100,7 +100,7 @@ class Feeder:
         valid = []
         valid_label = []
         offset = 0
-        for i in range (10):
+        for i in range (5):
             for j in range (1000):
                 if j < 900:
                     train.append(self.samples[offset])
