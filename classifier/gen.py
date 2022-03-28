@@ -5,7 +5,7 @@ from tqdm import tqdm
 from mpi4py import MPI
 
 mu = 1.0
-sigma = 400
+sigma = 50
 N = 1000 # Number of data for each sigma
 T = 12500 # Number of traps
 t0 = 1e-9
@@ -18,10 +18,11 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
 # Step 1
-for k in tqdm(range (3)):
+for k in tqdm(range (10)):
     t1 = time.time()
     np.random.seed(rank + int(time.time()))
     z = np.random.normal(mu, sigma, N*T)
+    z = np.round(z)
     z = np.reshape(z, (N, T))
     for i in range (N):
         for j in range (T):
