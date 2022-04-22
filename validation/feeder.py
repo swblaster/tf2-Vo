@@ -31,7 +31,7 @@ class Feeder:
         self.size = self.comm.Get_size()
         self.input_path = input_path
         self.train_batch_size = batch_size
-        self.valid_batch_size = 10
+        self.valid_batch_size = 5
         self.input_length = input_length
         self.num_classes = num_classes
 
@@ -49,7 +49,7 @@ class Feeder:
                 line = lines[j].split('\n')
                 value = float(line[0])
                 sample.append(value)
-            data.append(sample)
+            data.append(np.array(sample))
             num_samples = len(sample) // 80
             total_num_samples += num_samples
 
@@ -67,9 +67,11 @@ class Feeder:
                     label[j] = 3
             sample_labels.append(label)
             print ("label: %f shape: %d\n" %(label[0], len(sample)))
+        data = np.concatenate(data, axis=0)
         samples = np.array(data)
-        print ("samples: %s\n" %(str(samples.flatten().shape)))
-        labels = np.array(sample_labels)
+        labels = np.concatenate(sample_labels, axis=0)
+        print ("labels: %s\n" %(str(labels.shape)))
+        #labels = np.array(sample_labels)
         self.samples = np.reshape(samples, (total_num_samples, 80))
         self.samples = self.samples[:,:self.input_length]
         labels = np.reshape(labels, (total_num_samples))
@@ -82,7 +84,7 @@ class Feeder:
         self.num_train_batches = self.num_train_samples // (self.size * self.train_batch_size)
         self.num_local_train_samples = self.num_train_batches * self.train_batch_size
         self.local_train_samples_offset = self.rank * self.num_local_train_samples
-        self.num_valid_samples = 40
+        self.num_valid_samples = 25
         self.num_valid_batches = self.num_valid_samples // self.valid_batch_size
 
         min_value = np.amin(self.samples, axis=0)[-1]
