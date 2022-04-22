@@ -27,13 +27,13 @@ class Network ():
         self.batch_norm_momentum = 0.99
         self.batch_norm_epsilon = 1e-5
         self.sample_length = input_length
-        self.filter_size = 256
-        self.kernel_size = 4
-        self.num_layers = 20
+        self.filter_size = 128 
+        self.kernel_size = 2
+        self.num_layers = 4
         self.initializer = tf.keras.initializers.GlorotNormal(seed = int(time.time()))
         print ("Initializing a simple feed-forward network...")
 
-    def build_model (self):
+    def build_model2 (self):
         self.regularizer = l2(self.weight_decay)
         x_in = Input(shape = (self.sample_length), name = 'input')
         x = layers.Dense(self.filter_size, 
@@ -57,7 +57,7 @@ class Network ():
                          activation = 'softmax')(x)
         return Model(x_in, y, name = "oxynet")
 
-    def build_model2 (self):
+    def build_model (self):
         self.regularizer = l2(self.weight_decay)
         x_in = Input(shape = (self.sample_length, 1), name = 'input')
         filter_size = self.filter_size
@@ -83,8 +83,18 @@ class Network ():
         x = layers.GlobalAveragePooling1D()(x)
         #x = layers.Flatten()(x)
 
-        y = layers.Dense(5, 
+        x = layers.Dense(128, 
+                         kernel_regularizer = self.regularizer)(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.LeakyReLU()(x)
+
+        x = layers.Dense(128, 
+                         kernel_regularizer = self.regularizer)(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.LeakyReLU()(x)
+
+        y = layers.Dense(2,
                          kernel_regularizer = self.regularizer,
-                         bias_regularizer = self.regularizer,
+                         #bias_regularizer = self.regularizer,
                          activation = 'softmax')(x)
         return Model(x_in, y, name = "oxynet")

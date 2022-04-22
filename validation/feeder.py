@@ -39,6 +39,7 @@ class Feeder:
         files = [f for f in listdir(self.input_path) if isfile(join(self.input_path, f))]
         data = []
         sample_labels = []
+        total_num_samples = 0
         for i in range(len(files)):
             path = self.input_path + "/" + files[i]
             f = open(path, "r")
@@ -49,11 +50,13 @@ class Feeder:
                 value = float(line[0])
                 sample.append(value)
             data.append(sample)
+            num_samples = len(sample) // 80
+            total_num_samples += num_samples
 
             tokens = files[i].split('_')
             sigma = tokens[1].split('.')[0]
-            label = np.zeros((10))
-            for j in range (10):
+            label = np.zeros((num_samples))
+            for j in range (num_samples):
                 if int(sigma) == 0:
                     label[j] = 0
                 elif int(sigma) == 10:
@@ -65,12 +68,13 @@ class Feeder:
             sample_labels.append(label)
             print ("label: %f shape: %d\n" %(label[0], len(sample)))
         samples = np.array(data)
+        print ("samples: %s\n" %(str(samples.flatten().shape)))
         labels = np.array(sample_labels)
-        self.samples = np.reshape(samples, (40, 80))
+        self.samples = np.reshape(samples, (total_num_samples, 80))
         self.samples = self.samples[:,:self.input_length]
-        labels = np.reshape(labels, (40))
-        self.labels = np.zeros((40, 10))
-        for i in range (40):
+        labels = np.reshape(labels, (total_num_samples))
+        self.labels = np.zeros((total_num_samples, 5))
+        for i in range (total_num_samples):
             index = int(labels[i])
             self.labels[i][index] = 1
 
@@ -108,11 +112,16 @@ class Feeder:
         valid = []
         valid_label = []
         offset = 0
+        '''
         for i in range (4):
             for j in range (10):
                 valid.append(self.samples[offset])
                 valid_label.append(self.labels[offset])
                 offset += 1
+        '''
+        for i in range (total_num_samples):
+            valid.append(self.samples[i])
+            valid_label.append(self.labels[i])
         self.train_samples = train
         self.train_labels = train_label
         self.valid_samples = valid
