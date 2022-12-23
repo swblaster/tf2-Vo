@@ -35,7 +35,7 @@ class generator:
             exit()
 
         print ("1. Generating random %d trap locations...\n" %(self.num_traps))
-        self.d = np.random.normal(self.mu, self.sigma, self.num_traps)
+        self.d = abs(np.random.normal(self.mu, self.sigma, self.num_traps))
         for i in range (len(self.d)):
             print ("%d\n" %(self.d[i]))
 
@@ -51,6 +51,7 @@ class generator:
 if __name__ == '__main__':
     gen = generator(cfg.num_traps, cfg.lmd, cfg.tau_0, cfg.num_samples_per_sigma,
                     cfg.unit_sigma, cfg.max_sigma, cfg.unit_freq, cfg.max_freq)
+    gen.sigma = 10
     gen.generate_traps()
     gen.bound_range()
     gen.calc_noise()
