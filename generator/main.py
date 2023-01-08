@@ -19,6 +19,7 @@ class generator:
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
+        self.sample_index = 0
         self.num_traps = num_traps
         self.A = 1.0
         self.f_resolution = 32
@@ -72,11 +73,19 @@ class generator:
 
     def sum_up (self):
         print ("4. Sum up the noise values to create PSD curves...\n")
+        self.PSD = np.sum(self.S, axis = 1)
+        print (self.PSD)
+        name = "PSD_" + str(self.sigma) + "_" + str(self.sample_index) + ".txt"
+        f = open(name, "a")
+        for i in range (len(self.PSD)):
+            f.write("%f\n" %(self.PSD[i]))
+        f.close()
 
 if __name__ == '__main__':
     gen = generator(cfg.num_traps, cfg.lmd, cfg.tau_0, cfg.num_samples_per_sigma,
                     cfg.unit_sigma, cfg.max_sigma, cfg.unit_freq, cfg.max_freq)
     gen.sigma = 25
+    gen.sample_index = 0
     gen.generate_traps()
     gen.bound_range()
     gen.calc_noise()
