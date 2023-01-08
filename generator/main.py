@@ -6,6 +6,7 @@ Dec 23, 2022
 '''
 
 import numpy as np
+import tqdm as tqdm
 import math
 import time
 from tqdm import tqdm
@@ -48,7 +49,7 @@ class generator:
         for i in range (self.num_samples_per_sigma):
             for j in range (self.num_traps):
                 for neighbor in range (self.sigma):
-                    distance = abs(neighbor - self.z[j])
+                    distance = abs(neighbor - self.d[j])
                     if distance <= 50:
                         self.gate[neighbor][j] = 1
                     else:
@@ -60,13 +61,13 @@ class generator:
         t0 = 4e-15
         lmd = 0.5
 
-        for trap_idx in range (self.num_traps):
+        for trap_idx in tqdm(range (self.num_traps)):
             for freq in range (1, self.max_freq):
                 s = 0
                 for z in range (self.sigma):
                     exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
-                    sub_A = ((t0 * exp ) / (1 + (2 * np.pi * freq * self.f_resolution * (t0 * exp))**2))
-                    s += self.A * self.histo(z) * self.gate(z) * sub_A
+                    sub_s = ((t0 * exp ) / (1 + (2 * np.pi * freq * self.f_resolution * (t0 * exp))**2))
+                    s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
                 self.S[freq][trap_idx] = s
 
     def sum_up (self):
