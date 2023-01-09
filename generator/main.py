@@ -63,13 +63,13 @@ class generator:
         lmd = 0.5
 
         for trap_idx in tqdm(range (self.num_traps)):
-            for freq in range (1, self.max_freq):
+            for freq in range (1, self.max_freq + 1):
                 s = 0
                 for z in range (self.sigma):
                     exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
                     sub_s = ((t0 * exp ) / (1 + (2 * np.pi * freq * self.f_resolution * (t0 * exp))**2))
                     s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
-                self.S[freq][trap_idx] = s
+                self.S[freq - 1][trap_idx] = s
 
     def sum_up (self):
         print ("4. Sum up the noise values to create PSD curves...\n")
