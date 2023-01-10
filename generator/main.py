@@ -62,24 +62,35 @@ class generator:
         t0 = 4e-15
         lmd = 0.5
 
-        for trap_idx in tqdm(range (self.num_traps)):
-            for freq in range (1, self.max_freq + 1):
+        '''
+        for freq in tqdm(range (1, self.max_freq + 1)):
+            for trap_idx in range (self.num_traps):
                 s = 0
                 for z in range (self.sigma):
                     exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
                     sub_s = ((t0 * exp ) / (1 + (2 * np.pi * freq * self.f_resolution * (t0 * exp))**2))
                     s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
                 self.S[freq - 1][trap_idx] = s
+        '''
+        self.PSD = np.zeros((self.max_freq))
+
+        for freq in tqdm(range (1, self.max_freq + 1)):
+            s = 0
+            for z in range (self.sigma):
+                inner_s = 0
+                for trap_idx in range (self.num_traps):
+                    exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
+                    exp2 = np.exp(2*abs(z - self.d[trap_idx]) / self.lmd)
+                    #sub_s = (t0 * exp) / (1 + (2 * np.pi * freq * self.f_resolution)**2 * t0**2 * exp2)
+                    sub_s = (t0 * exp) / (1 + (2 * np.pi * freq * self.f_resolution)**2 * t0**2 * exp2)
+                    inner_s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
+                s += inner_s
+            self.PSD[freq - 1] = s
 
     def sum_up (self):
         print ("4. Sum up the noise values to create PSD curves...\n")
         self.PSD = np.sum(self.S, axis = 1)
         print (self.PSD)
-        name = "PSD_" + str(self.sigma) + "_" + str(self.sample_index) + ".txt"
-        f = open(name, "a")
-        for i in range (len(self.PSD)):
-            f.write("%f\n" %(self.PSD[i]))
-        f.close()
 
 if __name__ == '__main__':
     gen = generator(cfg.num_traps, cfg.lmd, cfg.tau_0, cfg.num_samples_per_sigma,
@@ -89,7 +100,13 @@ if __name__ == '__main__':
     gen.generate_traps()
     gen.bound_range()
     gen.calc_noise()
-    gen.sum_up()
+    #gen.sum_up()
+
+    name = "PSD_" + str(gen.sigma) + "_" + str(gen.sample_index) + ".txt"
+    f = open(name, "a")
+    for i in range (len(gen.PSD)):
+        f.write("%f\n" %(gen.PSD[i]))
+    f.close()
 
     if gen.rank == 0:
         print ("All done.\n")
