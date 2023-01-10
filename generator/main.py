@@ -24,7 +24,8 @@ class generator:
         self.A = 1.0
         self.f_resolution = 32
         self.mu = 0
-        self.sigma = 0
+        self.trap_sigma = 0
+        self.elec_sigma = 0
         self.lmd = lmd
         self.tau_0 = tau_0
         self.num_samples_per_sigma = num_samples_per_sigma
@@ -34,22 +35,23 @@ class generator:
         self.max_freq = max_freq
 
     def generate_traps (self):
-        if self.mu == 0 and self.sigma == 0:
-            print ("Set self.sigma to a valid value, not zero!\n")
+        if self.mu == 0 and self.trap_sigma == 0:
+            print ("Set self.trap_sigma to a valid value, not zero!\n")
             exit()
 
         print ("1. Generating random %d trap locations...\n" %(self.num_traps))
-        self.d = abs(np.random.normal(self.mu, self.sigma, self.num_traps))
-        self.histo, bins = np.histogram(self.d, np.array(range(self.sigma + 100)))
+        self.d = abs(np.random.normal(self.mu, self.trap_sigma, self.num_traps))
+        self.z = abs(np.random.normal(self.mu, self.elec_sigma, self.num_traps))
+        self.histo, bins = np.histogram(self.z, np.array(range(self.trap_sigma + 100)))
         histo_sum = sum(self.histo)
         print ("histo_sum = %d\n" %(histo_sum))
 
     def bound_range (self):
         print ("2. Bound the aggregation range...\n")
-        self.gate = np.zeros((self.sigma, self.num_traps))
+        self.gate = np.zeros((self.trap_sigma, self.num_traps))
         for i in range (self.num_samples_per_sigma):
             for j in range (self.num_traps):
-                for neighbor in range (self.sigma):
+                for neighbor in range (self.trap_sigma):
                     distance = abs(neighbor - self.d[j])
                     if distance <= 50:
                         self.gate[neighbor][j] = 1
@@ -66,7 +68,7 @@ class generator:
         for freq in tqdm(range (1, self.max_freq + 1)):
             for trap_idx in range (self.num_traps):
                 s = 0
-                for z in range (self.sigma):
+                for z in range (self.trap_sigma):
                     exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
                     sub_s = ((t0 * exp ) / (1 + (2 * np.pi * freq * self.f_resolution * (t0 * exp))**2))
                     s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
@@ -74,15 +76,16 @@ class generator:
         '''
         self.PSD = np.zeros((self.max_freq))
 
+        constant = (2 * np.pi * self.f_resolution * t0)**2
         for freq in tqdm(range (1, self.max_freq + 1)):
             s = 0
-            for z in range (self.sigma):
+            for z in range (self.trap_sigma):
                 inner_s = 0
                 for trap_idx in range (self.num_traps):
                     exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
                     exp2 = np.exp(2*abs(z - self.d[trap_idx]) / self.lmd)
                     #sub_s = (t0 * exp) / (1 + (2 * np.pi * freq * self.f_resolution)**2 * t0**2 * exp2)
-                    sub_s = (t0 * exp) / (1 + (2 * np.pi * freq * self.f_resolution)**2 * t0**2 * exp2)
+                    sub_s = (t0 * exp) / (1 + constant * freq**2 * exp2)
                     inner_s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
                 s += inner_s
             self.PSD[freq - 1] = s
@@ -95,14 +98,15 @@ class generator:
 if __name__ == '__main__':
     gen = generator(cfg.num_traps, cfg.lmd, cfg.tau_0, cfg.num_samples_per_sigma,
                     cfg.unit_sigma, cfg.max_sigma, cfg.unit_freq, cfg.max_freq)
-    gen.sigma = 25
+    gen.trap_sigma = 200
+    gen.elec_sigma = 0
     gen.sample_index = 0
     gen.generate_traps()
     gen.bound_range()
     gen.calc_noise()
     #gen.sum_up()
 
-    name = "PSD_" + str(gen.sigma) + "_" + str(gen.sample_index) + ".txt"
+    name = "PSD_t" + str(gen.trap_sigma) + "_e" + str(gen.sample_index) + ".txt"
     f = open(name, "a")
     for i in range (len(gen.PSD)):
         f.write("%f\n" %(gen.PSD[i]))
