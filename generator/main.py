@@ -76,19 +76,9 @@ class generator:
         self.S = np.zeros((self.max_freq, self.num_traps))
         t0 = 4e-15
         lmd = 0.5
-
-        '''
-        for freq in tqdm(range (1, self.max_freq + 1)):
-            for trap_idx in range (self.num_traps):
-                s = 0
-                for z in range (self.trap_sigma):
-                    exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
-                    sub_s = ((t0 * exp ) / (1 + (2 * np.pi * freq * self.f_resolution * (t0 * exp))**2))
-                    s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
-                self.S[freq - 1][trap_idx] = s
-        '''
         self.PSD = np.zeros((self.max_freq))
 
+        '''
         constant = (2 * np.pi * self.f_resolution * t0)**2
         for freq in tqdm(range (1, self.max_freq + 1)):
             s = 0
@@ -106,24 +96,45 @@ class generator:
                     inner_s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
                 s += inner_s
             self.PSD[freq - 1] = s
+        '''
 
-    def sum_up (self):
-        print ("4. Sum up the noise values to create PSD curves...\n")
-        self.PSD = np.sum(self.S, axis = 1)
-        print (self.PSD)
+        # New code
+        constant = (2 * np.pi * self.f_resolution * t0)**2
+        for freq in tqdm(range (1, self.max_freq + 1)):
+            s = 0
+            for trap_idx in range (self.num_traps):
+                inner_s = 0
+                start = 0 if self.d[trap_idx] <= 25 else self.d[trap_idx] - 25
+                end = self.d[trap_idx] + 25 if self.d[trap_idx] + 25 < self.trap_sigma + 100 else self.trap_sigma + 100 - 1
+                #print ("start: %d d: %d end: %d\n" %(start, self.d[trap_idx], end))
+                for z in range (start, end):
+                    if self.histo[z] == 0:
+                        continue
+                    exponent = abs(z - self.d[trap_idx]) / self.lmd
+                    if exponent > 200:
+                        exponent = 200
+                    exp = np.exp(exponent)
+                    exp2 = np.exp(2*exponent)
+                    sub_s = (t0 * exp) / (1 + constant * freq**2 * exp2)
+                    if self.gate[z][trap_idx] != 1:
+                        print ("trap_idx: %d z: %d\n" %(trap_idx, z))
+                        exit()
+                    #inner_s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
+                    inner_s += self.A * self.histo[z] * sub_s
+                s += inner_s
+            self.PSD[freq - 1] = s
 
 if __name__ == '__main__':
     gen = generator(cfg.num_traps, cfg.lmd, cfg.tau_0, cfg.num_samples_per_sigma,
                     cfg.unit_sigma, cfg.max_sigma, cfg.unit_freq, cfg.max_freq)
-    gen.trap_sigma = 5
-    gen.trap_mu = 0
+    gen.trap_sigma = 25
+    gen.trap_mu = 5
     gen.elec_sigma = 3
     gen.elec_mu = 0
     gen.sample_index = 0
     gen.generate_traps()
     gen.bound_range()
     gen.calc_noise()
-    #gen.sum_up()
 
     name = "PSD_t" + str(gen.trap_sigma) + "_e" + str(gen.sample_index) + ".txt"
     f = open(name, "a")
