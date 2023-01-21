@@ -23,9 +23,10 @@ class generator:
         self.num_traps = num_traps
         self.A = 1.0
         self.f_resolution = 32
-        self.mu = 0
-        self.trap_sigma = 0
-        self.elec_sigma = 0
+        self.trap_mu = 0
+        self.trap_sigma = 50
+        self.elec_mu = 0
+        self.elec_sigma = 3
         self.lmd = lmd
         self.tau_0 = tau_0
         self.num_samples_per_sigma = num_samples_per_sigma
@@ -35,16 +36,28 @@ class generator:
         self.max_freq = max_freq
 
     def generate_traps (self):
-        if self.mu == 0 and self.trap_sigma == 0:
+        if self.trap_mu == 0 and self.trap_sigma == 0:
             print ("Set self.trap_sigma to a valid value, not zero!\n")
             exit()
 
         print ("1. Generating random %d trap locations...\n" %(self.num_traps))
-        self.d = abs(np.random.normal(self.mu, self.trap_sigma, self.num_traps))
-        self.z = abs(np.random.normal(self.mu, self.elec_sigma, self.num_traps))
+        self.d = abs(np.random.normal(self.trap_mu, self.trap_sigma, self.num_traps)).astype(int)
+        self.z = abs(np.random.normal(self.elec_mu, self.elec_sigma, self.num_traps)).astype(int)
+        f = open("d.txt", "a")
+        for i in range (len(self.d)):
+            f.write("%f\n"%(self.d[i]))
+        f.close()
+        f = open("z.txt", "a")
+        for i in range (len(self.z)):
+            f.write("%f\n"%(self.z[i]))
+        f.close()
         self.histo, bins = np.histogram(self.z, np.array(range(self.trap_sigma + 100)))
         histo_sum = sum(self.histo)
         print ("histo_sum = %d\n" %(histo_sum))
+        f = open("h.txt", "a")
+        for i in range (len(self.histo)):
+            f.write("%d\n" %(self.histo[i]))
+        f.close()
 
     def bound_range (self):
         print ("2. Bound the aggregation range...\n")
@@ -53,7 +66,7 @@ class generator:
             for j in range (self.num_traps):
                 for neighbor in range (self.trap_sigma):
                     distance = abs(neighbor - self.d[j])
-                    if distance <= 50:
+                    if distance <= 25:
                         self.gate[neighbor][j] = 1
                     else:
                         self.gate[neighbor][j] = 0
@@ -81,10 +94,14 @@ class generator:
             s = 0
             for z in range (self.trap_sigma):
                 inner_s = 0
+                if self.histo[z] == 0:
+                    continue
                 for trap_idx in range (self.num_traps):
-                    exp = np.exp(abs(z - self.d[trap_idx]) / self.lmd)
-                    exp2 = np.exp(2*abs(z - self.d[trap_idx]) / self.lmd)
-                    #sub_s = (t0 * exp) / (1 + (2 * np.pi * freq * self.f_resolution)**2 * t0**2 * exp2)
+                    exponent = abs(z - self.d[trap_idx]) / self.lmd
+                    if exponent > 200:
+                        exponent = 200
+                    exp = np.exp(exponent)
+                    exp2 = np.exp(2*exponent)
                     sub_s = (t0 * exp) / (1 + constant * freq**2 * exp2)
                     inner_s += self.A * self.histo[z] * self.gate[z][trap_idx] * sub_s
                 s += inner_s
@@ -98,8 +115,10 @@ class generator:
 if __name__ == '__main__':
     gen = generator(cfg.num_traps, cfg.lmd, cfg.tau_0, cfg.num_samples_per_sigma,
                     cfg.unit_sigma, cfg.max_sigma, cfg.unit_freq, cfg.max_freq)
-    gen.trap_sigma = 200
-    gen.elec_sigma = 0
+    gen.trap_sigma = 5
+    gen.trap_mu = 0
+    gen.elec_sigma = 3
+    gen.elec_mu = 0
     gen.sample_index = 0
     gen.generate_traps()
     gen.bound_range()
