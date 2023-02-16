@@ -12,9 +12,9 @@ class generator:
         self.num_traps = num_traps
         self.num_electrons = num_electrons
         self.electron_mu = 0
-        self.electron_sigma = 5
+        self.electron_sigma = 20
         self.negative_mu = 0
-        self.negative_sigma = 60
+        self.negative_sigma = 50
         self.positive_mu = 0
         self.positive_sigma = 90
 
@@ -39,34 +39,37 @@ class generator:
         self.prob[self.prob<0] = 0
 
         # Normalize to be a sum of 1.
-        self.prob = self.prob / sum(self.prob)
-        for i in range (len(self.prob)):
-            print ("%f" %(self.prob[i]))
+        self.prob = np.array(self.prob / sum(self.prob)).astype(float)
+        #for i in range (len(self.prob)):
+        #    print ("%d: %f\n" %(i, self.prob[i]))
+        #exit()
 
     def calculate_gate(self):
         self.gate = np.zeros((self.num_electrons, 250))
         for i in range (self.num_electrons):
             for j in range (250):
-                if abs(j - self.E[i]) <= 50:
+                if abs(j + 1 - self.E[i]) <= 50:
                     self.gate[i][j] = 1
 
     def calculate_PSD(self):
-        A = 1
-        f_resolution = 32
+        A = 1.0
+        f_resolution = 32.0
         t0 = 4e-15
         lmd = 0.5
         S = np.zeros((200, self.num_electrons))
 
         for i in tqdm(range (self.num_electrons)): # For each electron...
-            for j in range (200): # For each frequency...
+            for freq in range (200): # For each frequency...
                 local_sum = 0
                 for k in range (250): # For each 0.8 nm...
                     if self.gate[i][k] == 1:
-                        K1 = t0 * np.exp(abs(k - self.E[i]) / lmd)
-                        K2 = 1 + (2 * np.pi * j * f_resolution * K1)**2
+                        K1 = t0 * np.exp(abs(k + 1 - self.E[i]) / lmd)
+                        K2 = 1 + (2 * np.pi * (freq  + 1) * f_resolution * K1)**2
                         K = K1 / K2
-                        local_sum += A * self.prob[k] * self.gate[i][k] * K
-                S[j][i] = local_sum
+                        local_sum += A * self.prob[k] * K
+                        #if k < 100:
+                        #    print ("prob[%d]: %f, K: %f\n" %(k, self.prob[k], K))
+                S[freq][i] = local_sum
         self.PSD = np.sum(S, axis = 1)
 
 if __name__ == '__main__':
@@ -82,4 +85,4 @@ if __name__ == '__main__':
     gen.calculate_PSD()
 
     for i in range (len(gen.PSD)):
-        print("freq %d: %f\n" %(i, gen.PSD[i]))
+        print("%30.28f" %(gen.PSD[i]))
