@@ -5,12 +5,13 @@ from tqdm import tqdm
 from mpi4py import MPI
 
 class generator:
-    def __init__ (self, num_traps, num_electrons):
+    def __init__ (self, num_traps, num_electrons, num_freqs):
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
         self.num_traps = num_traps
         self.num_electrons = num_electrons
+        self.num_freqs = num_freqs
         self.electron_mu = 0
         self.electron_sigma = 20
         self.negative_mu = 0
@@ -89,10 +90,10 @@ class generator:
         f_resolution = 32.0
         t0 = 4e-15
         lmd = 0.5
-        S = np.zeros((200, self.num_electrons))
+        S = np.zeros((self.num_freqs, self.num_electrons))
 
         for i in tqdm(range (self.num_electrons)): # For each electron...
-            for freq in range (200): # For each frequency...
+            for freq in range (self.num_freqs): # For each frequency...
                 local_sum = 0
                 for k in range (250): # For each 0.8 nm...
                     if self.gate[i][k] == 1:
@@ -106,8 +107,9 @@ class generator:
 if __name__ == '__main__':
     num_traps = 10000
     num_electrons = num_traps // 100
+    num_freqs = 30
 
-    gen = generator(num_traps, num_electrons)
+    gen = generator(num_traps, num_electrons, num_freqs)
     gen.generate_electrons()
     gen.generate_negative_distribution()
     gen.generate_positive_distribution()
