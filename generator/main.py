@@ -12,19 +12,18 @@ class generator:
         self.num_traps = num_traps
         self.num_electrons = num_electrons
         self.electron_mu = 0
-        self.electron_sigma = 20 
+        self.electron_sigma = 20
         self.negative_mu = 0
         self.negative_sigma = 40
         self.positive_mu = 0
-        self.positive_sigma = 90
+        self.positive_sigma = 100
 
     def generate_electrons(self):
-        self.E = abs(np.random.normal(self.electron_mu, self.electron_sigma, self.num_electrons).astype(int))
         items = []
         length = self.num_electrons
         while len(items) < self.num_electrons:
-            numbers = np.random.normal(self.electron_mu, self.electron_sigma, length)
-            numbers = numbers[numbers>0]
+            numbers = np.random.normal(self.electron_mu, self.electron_sigma, length).astype(int)
+            numbers = numbers[numbers>=0]
             howmany = len(numbers)
             if len(items) + len(numbers) < self.num_electrons:
                 length -= len(numbers)
@@ -37,12 +36,11 @@ class generator:
         self.E_histo, self.E_bins = np.histogram(self.E, bins = bins)
 
     def generate_negative_distribution(self):
-        self.N = abs(np.random.normal(self.negative_mu, self.negative_sigma, self.num_traps).astype(int))
         items = []
         length = self.num_traps
         while len(items) < self.num_traps:
-            numbers = np.random.normal(self.negative_mu, self.negative_sigma, length)
-            numbers = numbers[numbers>0]
+            numbers = np.random.normal(self.negative_mu, self.negative_sigma, length).astype(int)
+            numbers = numbers[numbers>=0]
             howmany = len(numbers)
             if len(items) + howmany < self.num_traps:
                 length -= howmany
@@ -55,12 +53,11 @@ class generator:
         self.N_histo, self.N_bins = np.histogram(self.N, bins = bins)
 
     def generate_positive_distribution(self):
-        self.P = abs(np.random.normal(self.positive_mu, self.positive_sigma, self.num_traps).astype(int))
         items = []
         length = self.num_traps
         while len(items) < self.num_traps:
-            numbers = np.random.normal(self.positive_mu, self.positive_sigma, length)
-            numbers = numbers[numbers>0]
+            numbers = np.random.normal(self.positive_mu, self.positive_sigma, length).astype(int)
+            numbers = numbers[numbers>=0]
             howmany = len(numbers)
             if len(items) + howmany < self.num_traps:
                 length -= howmany
