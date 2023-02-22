@@ -47,7 +47,7 @@ class generator:
         length = self.num_traps
         while len(items) < self.num_traps:
             numbers = np.random.normal(self.positive_mu, self.positive_sigma, length).astype(int)
-            numbers = numbers[numbers >= self.trap_cut]
+            numbers = numbers[numbers > self.trap_cut]
             numbers = numbers[numbers < 150]
             howmany = len(numbers)
             if len(items) + howmany < self.num_traps:
