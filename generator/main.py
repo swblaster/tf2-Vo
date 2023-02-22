@@ -13,18 +13,21 @@ class generator:
         self.num_electrons = num_electrons
         self.num_freqs = num_freqs
         self.electron_mu = 0
-        self.electron_sigma = 20
+        self.electron_sigma = 10
         self.negative_mu = 0
-        self.negative_sigma = 40
-        self.positive_mu = 0
-        self.positive_sigma = 100
+        self.negative_sigma = 20
+        self.positive_mu = 120
+        self.positive_sigma = 20
+        self.electron_cut = 33
+        self.trap_cut = 44
 
     def generate_electrons(self):
         items = []
         length = self.num_electrons
         while len(items) < self.num_electrons:
             numbers = np.random.normal(self.electron_mu, self.electron_sigma, length).astype(int)
-            numbers = numbers[numbers>=0]
+            numbers = numbers[numbers >= 0]
+            numbers = numbers[numbers < self.electron_cut]
             howmany = len(numbers)
             if len(items) + len(numbers) < self.num_electrons:
                 length -= len(numbers)
@@ -34,31 +37,18 @@ class generator:
                 items += list(numbers[:length])
         self.E = np.array(items)
         bins = np.arange(251)
-        self.E_histo, self.E_bins = np.histogram(self.E, bins = bins)
 
-    def generate_negative_distribution(self):
-        items = []
-        length = self.num_traps
-        while len(items) < self.num_traps:
-            numbers = np.random.normal(self.negative_mu, self.negative_sigma, length).astype(int)
-            numbers = numbers[numbers>=0]
-            howmany = len(numbers)
-            if len(items) + howmany < self.num_traps:
-                length -= howmany
-            else:
-                length = self.num_traps - len(items)
-                numbers = numbers[:length]
-            items += list(numbers)
-        self.N = np.array(items)
-        bins = np.arange(251)
-        self.N_histo, self.N_bins = np.histogram(self.N, bins = bins)
+        # Replace one random sample with the deepest electron.
+        self.E[0] = self.electron_cut
+        self.E_histo, self.E_bins = np.histogram(self.E, bins = bins)
 
     def generate_positive_distribution(self):
         items = []
         length = self.num_traps
         while len(items) < self.num_traps:
             numbers = np.random.normal(self.positive_mu, self.positive_sigma, length).astype(int)
-            numbers = numbers[numbers>=0]
+            numbers = numbers[numbers >= self.trap_cut]
+            numbers = numbers[numbers < 150]
             howmany = len(numbers)
             if len(items) + howmany < self.num_traps:
                 length -= howmany
@@ -71,17 +61,13 @@ class generator:
         self.P_histo, self.P_bins = np.histogram(self.P, bins = bins)
 
     def calculate_trap_probability(self):
-        # Calculate the probabilities.
-        self.prob = np.array((self.P_histo - self.N_histo) / self.num_traps).astype(float)
-        self.prob[self.prob<0] = 0
-
-        # Normalize to be a sum of 1.
+        self.prob = np.array(self.P_histo).astype(float)
         self.prob = self.prob / sum(self.prob)
 
     def calculate_gate(self):
-        self.gate = np.zeros((self.num_electrons, 250))
+        self.gate = np.zeros((self.num_electrons, 150))
         for i in range (self.num_electrons):
-            for j in range (250):
+            for j in range (150):
                 if abs(j + 1 - self.E[i]) <= 50:
                     self.gate[i][j] = 1
 
@@ -95,7 +81,7 @@ class generator:
         for i in tqdm(range (self.num_electrons)): # For each electron...
             for freq in range (self.num_freqs): # For each frequency...
                 local_sum = 0
-                for k in range (250): # For each 0.8 nm...
+                for k in range (150): # For each 0.8 nm...
                     if self.gate[i][k] == 1:
                         K1 = t0 * np.exp(abs(k + 1 - self.E[i]) / lmd)
                         K2 = 1 + (2 * np.pi * (freq  + 1) * f_resolution * K1)**2
@@ -105,17 +91,16 @@ class generator:
         self.PSD = np.sum(S, axis = 1)
 
 if __name__ == '__main__':
-    num_traps = 10000
-    num_electrons = num_traps // 100
-    num_freqs = 30
+    num_traps = 1000000
+    num_electrons = num_traps // 1000
+    num_freqs = 100
 
     gen = generator(num_traps, num_electrons, num_freqs)
     gen.generate_electrons()
-    gen.generate_negative_distribution()
     gen.generate_positive_distribution()
     gen.calculate_trap_probability()
     gen.calculate_gate()
     gen.calculate_PSD()
 
     for i in range (len(gen.PSD)):
-        print("%30.28f" %(gen.PSD[i]))
+        print("%36.34f" %(gen.PSD[i]))
