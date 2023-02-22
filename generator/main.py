@@ -18,7 +18,7 @@ class generator:
         self.negative_sigma = 20
         self.positive_mu = 120
         self.positive_sigma = 20
-        self.electron_cut = 33
+        self.electron_cut = 32
         self.trap_cut = 44
 
     def generate_electrons(self):
@@ -39,7 +39,7 @@ class generator:
         bins = np.arange(251)
 
         # Replace one random sample with the deepest electron.
-        self.E[0] = self.electron_cut
+        self.E[0] = self.electron_cut + 1
         self.E_histo, self.E_bins = np.histogram(self.E, bins = bins)
 
     def generate_positive_distribution(self):
