@@ -14,12 +14,10 @@ class generator:
         self.num_freqs = num_freqs
         self.electron_mu = 0
         self.electron_sigma = 10
-        self.negative_mu = 0
-        self.negative_sigma = 20
-        self.positive_mu = 120
-        self.positive_sigma = 20
+        self.trap_mu = 60
+        self.trap_sigma = 20
         self.electron_cut = 33
-        self.trap_cut = 45
+        self.trap_cut = 42
 
     def generate_electrons(self):
         items = []
@@ -47,7 +45,7 @@ class generator:
         items = []
         length = self.num_traps
         while len(items) < self.num_traps:
-            numbers = np.random.normal(self.positive_mu, self.positive_sigma, length).astype(int)
+            numbers = np.random.normal(self.trap_mu, self.trap_sigma, length).astype(int)
             numbers = numbers[numbers > self.trap_cut]
             numbers = numbers[numbers < 150]
             howmany = len(numbers)
@@ -101,8 +99,8 @@ class generator:
         self.PSD = self.comm.allreduce(self.local_PSD, op = MPI.SUM)
 
 if __name__ == '__main__':
-    num_traps = 1000000
-    num_electrons = 10000
+    num_traps = 100000
+    num_electrons = 100000
     num_freqs = 100
 
     gen = generator(num_traps, num_electrons, num_freqs)
