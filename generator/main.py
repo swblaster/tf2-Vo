@@ -18,8 +18,8 @@ class generator:
         self.negative_sigma = 20
         self.positive_mu = 120
         self.positive_sigma = 20
-        self.electron_cut = 32
-        self.trap_cut = 44
+        self.electron_cut = 33
+        self.trap_cut = 45
 
     def generate_electrons(self):
         items = []
@@ -36,6 +36,7 @@ class generator:
                 length = self.num_electrons - len(items)
                 items += list(numbers[:length])
         self.E = np.array(items)
+        self.E = self.comm.bcast(self.E, root = 0)
         bins = np.arange(251)
 
         # Replace one random sample with the deepest electron.
@@ -57,6 +58,7 @@ class generator:
                 numbers = numbers[:length]
             items += list(numbers)
         self.P = np.array(items)
+        self.P = self.comm.bcast(self.P, root = 0)
         bins = np.arange(251)
         self.P_histo, self.P_bins = np.histogram(self.P, bins = bins)
 
@@ -78,7 +80,14 @@ class generator:
         lmd = 0.5
         S = np.zeros((self.num_freqs, self.num_electrons))
 
-        for i in tqdm(range (self.num_electrons)): # For each electron...
+        length = self.num_electrons // self.size
+        remainder = self.num_electrons % self.size
+        if remainder != 0:
+            print ("The number of electrons is not divisible by the number of processes\n")
+            exit()
+        offset = self.rank * length
+        #for i in tqdm(range (self.num_electrons)): # For each electron...
+        for i in tqdm(range (offset, offset + length)): # For each electron...
             for freq in range (self.num_freqs): # For each frequency...
                 local_sum = 0
                 for k in range (150): # For each 0.8 nm...
@@ -88,11 +97,12 @@ class generator:
                         K = K1 / K2
                         local_sum += A * self.prob[k] * K
                 S[freq][i] = local_sum
-        self.PSD = np.sum(S, axis = 1)
+        self.local_PSD = np.sum(S, axis = 1)
+        self.PSD = self.comm.allreduce(self.local_PSD, op = MPI.SUM)
 
 if __name__ == '__main__':
     num_traps = 1000000
-    num_electrons = num_traps // 1000
+    num_electrons = 10000
     num_freqs = 100
 
     gen = generator(num_traps, num_electrons, num_freqs)
@@ -102,5 +112,6 @@ if __name__ == '__main__':
     gen.calculate_gate()
     gen.calculate_PSD()
 
-    for i in range (len(gen.PSD)):
-        print("%36.34f" %(gen.PSD[i]))
+    if gen.rank == 0:
+        for i in range (len(gen.PSD)):
+            print("%36.34f" %(gen.PSD[i]))
