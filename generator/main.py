@@ -14,10 +14,10 @@ class generator:
         self.num_freqs = num_freqs
         self.electron_mu = 0
         self.electron_sigma = 10
-        self.trap_mu = 60
+        self.trap_mu = 100
         self.trap_sigma = 20
-        self.electron_cut = 33
-        self.trap_cut = 42
+        self.electron_cut = 35
+        self.trap_cut = 45
 
     def generate_electrons(self):
         items = []
@@ -35,10 +35,10 @@ class generator:
                 items += list(numbers[:length])
         self.E = np.array(items)
         self.E = self.comm.bcast(self.E, root = 0)
-        bins = np.arange(251)
+        bins = np.arange(151)
 
         # Replace one random sample with the deepest electron.
-        self.E[0] = self.electron_cut + 1
+        #self.E[0] = self.electron_cut + 1
         self.E_histo, self.E_bins = np.histogram(self.E, bins = bins)
 
     def generate_positive_distribution(self):
@@ -47,7 +47,7 @@ class generator:
         while len(items) < self.num_traps:
             numbers = np.random.normal(self.trap_mu, self.trap_sigma, length).astype(int)
             numbers = numbers[numbers > self.trap_cut]
-            numbers = numbers[numbers < 150]
+            #numbers = numbers[numbers < 150]
             howmany = len(numbers)
             if len(items) + howmany < self.num_traps:
                 length -= howmany
@@ -56,8 +56,9 @@ class generator:
                 numbers = numbers[:length]
             items += list(numbers)
         self.P = np.array(items)
+        self.P[0] = self.trap_cut - 1
         self.P = self.comm.bcast(self.P, root = 0)
-        bins = np.arange(251)
+        bins = np.arange(151)
         self.P_histo, self.P_bins = np.histogram(self.P, bins = bins)
 
     def calculate_trap_probability(self):
