@@ -24,6 +24,7 @@ from tensorflow.keras.layers import Bidirectional
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import GRU
 from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import Reshape
 from tensorflow.keras.regularizers import l2
 
 def copy_model (model):
@@ -619,7 +620,7 @@ class Network ():
             if i % 3 == 0:
                 x = MaxPooling1D(pool_size = 2)(x)
         #x = GlobalAveragePooling1D()(x)
-        x = tf.reshape(x, [-1, np.prod(x.shape[1:])])
+        x = Reshape((-1,))(x)
 
         for i in range (self.num_full_layers):
             x = Dense(self.dense_width, kernel_regularizer = self.regularizer)(x)

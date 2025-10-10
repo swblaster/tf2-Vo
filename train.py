@@ -35,7 +35,7 @@ class framework:
             self.valid_acc = tf.keras.metrics.Accuracy()
 
         self.checkpoint = tf.train.Checkpoint(model = model, optimizer = self.solver.optimizer)
-        self.checkpoint.optimizer.lr.assign(self.min_lr)
+        self.checkpoint.optimizer.learning_rate.assign(self.min_lr)
         checkpoint_dir = "./checkpoint_" + str(self.rank)
         self.checkpoint_manager = tf.train.CheckpointManager(checkpoint = self.checkpoint, directory = checkpoint_dir, max_to_keep = 3)
         if self.rank == 0:
@@ -79,13 +79,13 @@ class framework:
             # LR decay
             if epoch_id in self.decay_epochs:
                 lr_decay = 1 / self.lr_decay_factor
-                self.checkpoint.optimizer.lr.assign(self.checkpoint.optimizer.lr * lr_decay)
+                self.checkpoint.optimizer.learning_rate.assign(self.checkpoint.optimizer.learning_rate * lr_decay)
 
             # Training loop.
-            lossmean.reset_states()
+            lossmean.reset_state()
             for j in tqdm(range(self.dataset.num_train_batches), ascii=True):
                 if epoch_id < self.warmup_epochs:
-                    self.checkpoint.optimizer.lr.assign(self.checkpoint.optimizer.lr + warmup_step_lr)
+                    self.checkpoint.optimizer.learning_rate.assign(self.checkpoint.optimizer.learning_rate + warmup_step_lr)
                 images, labels = train_dataset.next()
                 loss, grads = self.solver.train_step(self.checkpoint, images, labels)
                 self.solver.average_model(self.checkpoint, epoch_id)
@@ -105,7 +105,7 @@ class framework:
 
             if self.rank == 0:
                 print ("Epoch " + str(epoch_id) +
-                       " lr: " + str(self.checkpoint.optimizer.lr.numpy()) +
+                       " lr: " + str(self.checkpoint.optimizer.learning_rate.numpy()) +
                        " validation acc = " + str(global_acc) +
                        " training loss = " + str(global_loss))
                 f = open("acc.txt", "a")
@@ -121,7 +121,7 @@ class framework:
                 exit()
 
     def evaluate (self, epoch_id, valid_dataset):
-        self.valid_acc.reset_states()
+        self.valid_acc.reset_state()
         for i in tqdm(range(self.dataset.num_valid_batches), ascii=True):
             data, label = valid_dataset.next()
             predicts = self.checkpoint.model(data)
