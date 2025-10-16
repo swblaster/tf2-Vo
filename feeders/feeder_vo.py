@@ -29,14 +29,16 @@ class Vo:
         self.standardize = True
 
         # Read the test data.
-        f = open("test.bin", "r")
+        f = open("observation.bin", "r")
         lines = f.readlines()
         test_data = []
         for line in lines:
             data = float(line.split("\n")[0])
             test_data.append(data)
-        self.test_data = np.array(test_data).reshape((80, 100))
         f.close()
+
+        num_samples = len(test_data) // self.input_length
+        self.test_data = np.array(test_data).reshape((num_samples, self.input_length))
 
         # Read the training file.
         #e_sigmas = np.arange(1, 11)
@@ -90,23 +92,20 @@ class Vo:
         self.num_classes = len(np.unique(self.labels))
         print ("number of e_sigmas: %d number of labels: %d number of unique labels: %d\n" %(len(self.e_sigmas), len(self.labels), self.num_classes))
 
-        # Split the given dataset to training and validation sets.
         self.num_train_samples = int(self.dsets.shape[1] * 0.9) * self.dsets.shape[0]
         self.num_valid_samples = int(self.dsets.shape[1] * 0.1) * self.dsets.shape[0]
-        self.t_dsets = self.dsets[:,:int(self.dsets.shape[1] * 0.9), :]
-        self.v_dsets = self.dsets[:,-int(self.dsets.shape[1] * 0.1):, :]
 
         # Preprocessing for Training
-        #dsets = np.mean(self.t_dsets, axis=1)
-        dsets = np.mean(self.dsets, axis=1)
-        self.per_pixel_mean = np.array(dsets).astype(np.float32).mean(axis=0)
-        self.per_pixel_mean = np.reshape(self.per_pixel_mean, (np.prod(self.per_pixel_mean.shape)))
-        self.per_pixel_std = np.array(dsets).astype(np.float32).std(axis=0)
-        self.per_pixel_std = np.reshape(self.per_pixel_std, (np.prod(self.per_pixel_std.shape)))
+        # 1. Cetnralize.
+        self.mean_vals = self.dsets.mean(axis=(0,1), keepdims=True)
+        self.std_vals = self.dsets.std(axis=(0,1), keepdims=True)
+        dsets = (self.dsets - self.mean_vals) / (self.std_vals + 1e-8)
+        self.t_dsets = dsets[:,:int(self.dsets.shape[1] * 0.9), :]
+        self.v_dsets = dsets[:,-int(self.dsets.shape[1] * 0.1):, :]
 
-        dsets = np.reshape(self.t_dsets, (np.prod(self.t_dsets.shape[:-1]), self.t_dsets.shape[-1]))
-        self.per_pixel_max = np.amax(dsets, axis=0)
-        self.per_pixel_min = np.amin(dsets, axis=0)
+        self.mean_vals = self.mean_vals.reshape(-1, self.mean_vals.shape[-1])
+        self.std_vals = self.std_vals.reshape(-1, self.std_vals.shape[-1])
+        self.test_data = (self.test_data - self.mean_vals) / (self.std_vals + 1e-8)
 
         self.train_samples = np.reshape(self.t_dsets, (np.prod(self.t_dsets.shape[:-1]), self.t_dsets.shape[-1]))
         self.valid_samples = np.reshape(self.v_dsets, (np.prod(self.v_dsets.shape[:-1]), self.v_dsets.shape[-1]))
@@ -122,14 +121,6 @@ class Vo:
             index = i // self.v_dsets.shape[1]
             label = self.labels[index]
             self.valid_labels[i][label] = 1
-
-        #self.train_samples = (self.train_samples - self.per_pixel_min) / (self.per_pixel_max - self.per_pixel_min + 1e-10)
-        #self.valid_samples = (self.valid_samples - self.per_pixel_min) / (self.per_pixel_max - self.per_pixel_min + 1e-10)
-        #self.test_data = (self.test_data - self.per_pixel_min) / (self.per_pixel_max - self.per_pixel_min + 1e-10)
-
-        self.train_samples = (self.train_samples - self.per_pixel_mean) / (self.per_pixel_std + 1e-10)
-        self.valid_samples = (self.valid_samples - self.per_pixel_mean) / (self.per_pixel_std + 1e-10)
-        self.test_data = (self.test_data - self.per_pixel_mean) / (self.per_pixel_std + 1e-10)
 
         self.num_train_batches = self.num_train_samples // (self.size * self.train_batch_size)
         self.num_local_train_samples = self.num_train_batches * self.train_batch_size

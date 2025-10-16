@@ -139,10 +139,11 @@ class framework:
         for i in range (len(predicts)):
             class_id = predicts[i]
             candidates, e_sigmas, e_cuts, t_cuts = self.dataset.get_info(class_id)
-            sample_id =  i // 10
-            observation_id = i % 10
-            for i in range (len(candidates)):
-                print ("Sample: %2d Observation: %2d Class ID: %2d index: %3d e_sigma: %2d e_cut: %2d t_cut: %2d" %(sample_id, observation_id, class_id, candidates[i], e_sigmas[i], e_cuts[i], t_cuts[i]))
+            if len(candidates) > 1:
+                index = -1
+            else:
+                index = 0
+            print ("Sample: %2d Class ID: %2d index: %3d e_sigma: %2d e_cut: %2d t_cut: %2d" %(i, class_id, candidates[index], e_sigmas[index], e_cuts[index], t_cuts[index]))
 
     def broadcast_model (self):
         num_params = len(self.checkpoint.model.trainable_variables)

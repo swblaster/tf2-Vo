@@ -23,8 +23,8 @@ from tensorflow.keras.layers import Embedding
 from tensorflow.keras.layers import Bidirectional
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import GRU
-from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import Reshape
+from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.regularizers import l2
 
 def copy_model (model):
@@ -570,10 +570,10 @@ class Network ():
         self.num_classes = num_classes
         self.batch_norm_momentum = 0.99
         self.batch_norm_epsilon = 1e-6
-        self.filter_size = 512
+        self.filter_size = 256
         self.dense_width = 1024
         self.kernel_size = 5
-        self.num_conv_layers = 10
+        self.num_conv_layers = 15
         self.num_full_layers = 2
         self.initializer = tf.keras.initializers.GlorotNormal(seed = int(time.time()))
         print ("Initializing a simple feed-forward network...")
@@ -620,6 +620,7 @@ class Network ():
             if i % 3 == 0:
                 x = MaxPooling1D(pool_size = 2)(x)
         #x = GlobalAveragePooling1D()(x)
+        #x = tf.reshape(x, [-1, np.prod(x.shape[1:])])
         x = Reshape((-1,))(x)
 
         for i in range (self.num_full_layers):
