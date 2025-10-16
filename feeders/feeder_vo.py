@@ -58,16 +58,14 @@ class Vo:
         self.e_sigmas = []
         self.e_cuts = []
         self.t_cuts = []
-        num_blocks = 0
         for i in range (len(e_cuts)):
             if i > 10:
-                continue
+                break
             e_sigma = e_sigmas[i]
             e_cut = e_cuts[i]
             for j in range (len(t_cuts)):
                 t_cut = t_cuts[j]
                 index = i * len(t_cuts) + j
-                num_blocks += 1
                 self.e_sigmas.append(e_sigma)
                 self.e_cuts.append(e_cut)
                 self.t_cuts.append(t_cut)
@@ -77,6 +75,8 @@ class Vo:
         f.close()
 
         dimensions = self.dsets.shape
+        num_blocks = i * len(t_cuts)
+
         dsets = np.reshape(dsets, (num_blocks, dimensions[-2], dimensions[-1]))
 
         # Prepare the labels.
@@ -90,10 +90,19 @@ class Vo:
                 f.write("%d\n" %(self.labels[i]))
             f.close()
         self.num_classes = len(np.unique(self.labels))
-        print ("number of e_sigmas: %d number of labels: %d number of unique labels: %d\n" %(len(self.e_sigmas), len(self.labels), self.num_classes))
 
         self.num_train_samples = int(self.dsets.shape[1] * 0.9) * self.dsets.shape[0]
         self.num_valid_samples = int(self.dsets.shape[1] * 0.1) * self.dsets.shape[0]
+
+        print ("-----------------------------\n")
+        print ("Number of trap_cuts: %d" %(len(t_cuts)))
+        print ("Number of electron_sigmas: %d" %(i))
+        print ("Number of samples per setting: %d" %(dimensions[-2]))
+        print ("Number of dimensions per sample: %d" %(dimensions[-1]))
+        print ("Number of unique classes: %d\n" %(self.num_classes))
+        print ("Number of training samples: %d\n" %(self.num_train_samples))
+        print ("Number of validation samples: %d\n" %(self.num_valid_samples))
+        print ("-----------------------------\n")
 
         # Preprocessing for Training
         # 1. Cetnralize.

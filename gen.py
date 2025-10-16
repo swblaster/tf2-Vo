@@ -1,3 +1,10 @@
+'''
+Sunwoo Lee, Ph.D.
+Assistant Professor
+Inha University, Republic of Korea
+<sunwool@inha.ac.kr>
+2025/10/16
+'''
 import random
 import math
 import numpy as np
