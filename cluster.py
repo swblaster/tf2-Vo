@@ -85,9 +85,9 @@ if __name__ == '__main__':
         labels = np.reshape(clustering.labels_, ((len(t_cuts), max_e_sigma + 1)))
         labels = np.transpose(labels, (1, 0))
 
-        extras = np.full((11, 4), labels[0][0])
+        extras = np.full((11, 3), labels[0][0])
         labels = np.concatenate((extras, labels), axis = 1)
-        t_cuts = np.arange(0, 24)
+        t_cuts = np.arange(1, 24)
     else:
         dsets = np.reshape(dsets, (num_blocks, 100, 100))
         dsets = np.mean(dsets, axis=1)
