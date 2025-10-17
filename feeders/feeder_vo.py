@@ -100,8 +100,8 @@ class Vo:
         print ("Number of samples per setting: %d" %(dimensions[-2]))
         print ("Number of dimensions per sample: %d" %(dimensions[-1]))
         print ("Number of unique classes: %d\n" %(self.num_classes))
-        print ("Number of training samples: %d\n" %(self.num_train_samples))
-        print ("Number of validation samples: %d\n" %(self.num_valid_samples))
+        print ("Number of training samples: %d" %(self.num_train_samples))
+        print ("Number of validation samples: %d" %(self.num_valid_samples))
         print ("-----------------------------\n")
 
         # Preprocessing for Training
