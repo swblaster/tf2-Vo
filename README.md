@@ -17,7 +17,7 @@ This repository contains the software framework for experiments conducted in a p
 ## Data Generator
 `gen.py` calculates PSD curves and prints out them.
 
-## Deep Learning Framework
+## Classifier (Deep Learning Framework)
 `main.py` classifies the given 'observed' PSD curves based on the clusters found by our Feature Finder. The classifier is a manually designed 1-D Convolutional Neural Network. This code is based on the basic DL framework from LMLS lab at Inha University. The details will be updated soon.
  - `python main.py` evaluates the test samples stored in `observation.bin` using the neural network model stored in `checkpoint_0`.
 
