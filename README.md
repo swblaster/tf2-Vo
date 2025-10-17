@@ -18,6 +18,7 @@ This repository contains the software framework for experiments conducted in a p
 ## Simulation Data Generator
  - `gen.py` calculates PSD curves and prints out them.
  - The generated simulation data will be stored as a single HDF5 file. All samples corresponding to an individual setting will be stored as a single dataset under the root group.
+ - For each setting (a combination of electron sigma and trap on-set position), 100 samples are generated simulating 1,000,000 traps and 1,000,000 electrons generated based on the given statistics. 
 
 ## Classifier (Deep Learning Framework)
 `main.py` classifies the given 'observed' PSD curves based on the clusters found by our Feature Finder. The classifier is a manually designed 1-D Convolutional Neural Network. This code is based on the basic DL framework from LMLS lab at Inha University. Please see the paper's supplementary document for detailed hyper-parameter settings used to train the neural network on simulation data.
