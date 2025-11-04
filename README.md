@@ -7,6 +7,11 @@ This repository contains the software framework for experiments conducted in a p
 3. HDF5
 4. MPI
 
+## System Requirements
+1. Typical CUDA-available GPU machines (we used a server with 2 NVIDIA A6000ada GPUs)
+2. The system contains an AMD EPYC 7543 32-Core Processor, 2 NVIDIA A6000ada GPUs, and 256 GB memory.
+3. Training classifer model takes roughly 2.5~3 hours.
+
 ## Feature Finder
 `cluster.py` receives a simulated PSD curve dataset stored in an HDF5 file and cluster them using DBSCAN algorithm. Each pair of the standard deviation and the onset position of oxygen vacancies is assigned with a cluster ID.
  - Electron Sigma Values (rows): 1~11
